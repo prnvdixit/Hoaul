@@ -21,11 +21,11 @@ pole_x_1 = 50
 pole_x_2 = 600
 pole_start = 50
 pole_height = 500
-ball_radius = 15
+ball_radius = 12
 
 theta_rod = 0
 gravity_accln = 100
-game_offset = 8
+game_offset = 12
 
 display_width = 72 * int(desktopWidth/100)
 display_height = 95 * int(desktopHeight/100)
@@ -38,7 +38,10 @@ pygame.display.set_caption('Hoaul')
 
 pole = pygame.image.load('pole.png')
 rod = pygame.image.load('rod.png')
-
+brick = pygame.image.load('brick.png')
+ball = pygame.image.load('ball.png')
+# stone = [pygame.image.load("stone_1.png"), pygame.image.load("stone_2.png")]
+stone = pygame.image.load("stone_1.png")
 
 clock = pygame.time.Clock()
 
@@ -60,7 +63,7 @@ def show_score(y_ball, holes) :
             score += 1
 
     font = pygame.font.SysFont("comicsansms", 20, True, True)
-    screen_text = font.render("Score : " + str(score), True, black)
+    screen_text = font.render("Score : " + str(int(score)), True, black)
     gameDisplay.blit(screen_text, [0, 0])
 
 
@@ -111,7 +114,6 @@ def message_to_screen(msg, color, vert_displacement=0, size=25, text_font="None"
     gameDisplay.blit(screen_text, text_position)
 
 
-
 def game_loop():
 
     x_1 = pole_x_1
@@ -120,18 +122,19 @@ def game_loop():
     y_2 = pole_start + pole_height
 
     speed_ball = 0
+    speed_hole = 1
 
     x_ball = (x_1 + x_2) / 2
     y_ball = pole_start + (pole_height - ball_radius)
 
     hole_count = 0
     holes = []
-    num_holes = random.randint(40, 45)
+    num_holes = random.randint(10, 20)
 
 
     while hole_count < num_holes:
-        center = (random.randint(pole_x_1 + ball_radius, pole_x_2 - ball_radius),
-                  random.randint(pole_start + ball_radius, pole_start + pole_height - ball_radius))
+        center = [random.randint(pole_x_1 + ball_radius, pole_x_2 - ball_radius),
+                  random.randint(pole_start + ball_radius, pole_start + pole_height - ball_radius)]
         if not check_overlap(center, holes):
             hole_count += 1
             holes.append(center)
@@ -156,19 +159,28 @@ def game_loop():
                     if event.key == pygame.K_q:
                         game_exit = True
                         game_over = False
+                        return
 
                     if event.key == pygame.K_c:
-                        gameLoop()
+                        game_loop()
 
                 if event.type == pygame.QUIT:
                     game_exit = True
                     game_over = False
 
         gameDisplay.fill(white)
-        pygame.draw.circle(gameDisplay, red, (int(x_ball), int(y_ball)), ball_radius)
+        # pygame.draw.circle(gameDisplay, red, (int(x_ball), int(y_ball)), ball_radius)
+        gameDisplay.blit(ball, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
+
+        for hole_num in xrange(hole_count):
+            holes[hole_num][1] += speed_hole
+            if holes[hole_num][1] >= pole_start + pole_height:
+                holes[hole_num][1] -= pole_height
 
         for center in holes:
-            pygame.draw.circle(gameDisplay, black, center, ball_radius)
+            # pygame.draw.circle(gameDisplay, black, center, ball_radius)
+            gameDisplay.blit(stone, (center[0] - ball_radius, center[1] - ball_radius))
+
 
         blit_rod(x_1, y_1, x_2, y_2)
 
