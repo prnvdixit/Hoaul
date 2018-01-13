@@ -21,7 +21,6 @@ pole_x_1 = 50
 pole_x_2 = 600
 pole_start = 50
 pole_height = 500
-ball_radius = 12
 
 theta_rod = 0
 gravity_accln = 100
@@ -41,7 +40,9 @@ rod = pygame.image.load('rod.png')
 brick = pygame.image.load('brick.png')
 ball = pygame.image.load('ball.png')
 # stone = [pygame.image.load("stone_1.png"), pygame.image.load("stone_2.png")]
-stone = pygame.image.load("stone_1.png")
+stone = pygame.image.load("stone.png")
+freeze = pygame.image.load("freeze.png")
+small = pygame.image.load("small.png")
 
 clock = pygame.time.Clock()
 
@@ -52,11 +53,9 @@ def blit_poles():
         gameDisplay.blit(pole, (pole_x_1, i))
         gameDisplay.blit(pole, (pole_x_2, i))
 
-def show_score(y_ball, holes) :
+def show_score(y_ball, holes, score) :
 
     """ The function used to print the score on the top-left corner of screen """
-
-    score = 0
 
     for circle_centers in holes:
         if y_ball < circle_centers[1]:
@@ -75,7 +74,7 @@ def blit_rod(x_1, y_1, x_2, y_2):
         y = y_1 + slope * (i - x_1)
         gameDisplay.blit(rod, (i, y))
 
-def get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball):
+def get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_radius):
 
     # print x_1, y_1, x_2, y_2
 
@@ -99,7 +98,7 @@ def get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball):
 def check_overlap(center, holes):
 
     for circle_center in holes:
-        if abs(center[0] - circle_center[0]) < game_offset and abs(center[1] - circle_center[1]) < game_offset:
+        if abs(center[0] - circle_center[0][0]) < game_offset and abs(center[1] - circle_center[0][1]) < game_offset:
             return True
     return False
 
@@ -123,12 +122,17 @@ def game_loop():
 
     speed_ball = 0
     speed_hole = 1
+    score = 0
+    special_on_screen = False
+    ball_radius = 15
 
     x_ball = (x_1 + x_2) / 2
     y_ball = pole_start + (pole_height - ball_radius)
 
     hole_count = 0
     holes = []
+    special_holes = ["brick", "freeze", "small"]
+    power = ""
     num_holes = random.randint(10, 20)
 
 
@@ -136,9 +140,12 @@ def game_loop():
         center = [random.randint(pole_x_1 + ball_radius, pole_x_2 - ball_radius),
                   random.randint(pole_start + ball_radius, pole_start + pole_height - ball_radius)]
         if not check_overlap(center, holes):
+            if hole_count == 0:
+                center[1] = 0
+                holes.append([center, "power"])
+            else:
+                holes.append([center, ""])
             hole_count += 1
-            holes.append(center)
-            pygame.display.update()
 
     # print holes
 
@@ -170,17 +177,36 @@ def game_loop():
 
         gameDisplay.fill(white)
         # pygame.draw.circle(gameDisplay, red, (int(x_ball), int(y_ball)), ball_radius)
-        gameDisplay.blit(ball, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
+        if power != "small":
+            gameDisplay.blit(ball, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
 
-        for hole_num in xrange(hole_count):
-            holes[hole_num][1] += speed_hole
-            if holes[hole_num][1] >= pole_start + pole_height:
-                holes[hole_num][1] -= pole_height
+        for hole_num in xrange(1, hole_count):
+            holes[hole_num][0][1] += speed_hole
+            if holes[hole_num][0][1] >= pole_start + pole_height:
+                holes[hole_num][0][1] -= pole_height
+                holes[hole_num][0][0] = random.randint(pole_x_1 + ball_radius, pole_x_2 - ball_radius)
+                score += 1
 
-        for center in holes:
+        if special_on_screen == True:
+            holes[0][0][1] += speed_hole
+            if holes[0][0][1] <= pole_start + pole_height:
+                if power == "brick":
+                    gameDisplay.blit(brick, (holes[0][0][0], holes[0][0][1]))
+                elif power == "freeze":
+                    gameDisplay.blit(freeze, (holes[0][0][0], holes[0][0][1]))
+                elif power == "small":
+                    ball_radius = 8
+                    gameDisplay.blit(small, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
+            else:
+                special_on_screen = False
+                ball_radius = 15
+                power = ""
+                holes[0][0][1] = 0
+                holes[hole_num][0][0] = random.randint(pole_x_1 + ball_radius, pole_x_2 - ball_radius)
+
+        for center in holes[1:]:
             # pygame.draw.circle(gameDisplay, black, center, ball_radius)
-            gameDisplay.blit(stone, (center[0] - ball_radius, center[1] - ball_radius))
-
+            gameDisplay.blit(stone, (center[0][0] - ball_radius, center[0][1] - ball_radius))
 
         blit_rod(x_1, y_1, x_2, y_2)
 
@@ -217,12 +243,17 @@ def game_loop():
         if keys[pygame.K_s]:
             y_1 += 1
 
-        (x_ball, y_ball, speed_ball) = get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball)
+        (x_ball, y_ball, speed_ball) = get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_radius)
 
-        if check_overlap((x_ball, y_ball), holes):
+        if check_overlap((x_ball, y_ball), holes[1:]):
             game_over = True
 
-        show_score(y_ball, holes)
+        show_score(y_ball, holes, score)
+
+        if score != 0 and (score % 15) == 0 and not special_on_screen:
+            power = special_holes[random.randint(0, len(special_holes) - 1)]
+            holes[0][1] = power
+            special_on_screen = True
 
         blit_poles()
         pygame.display.update()
