@@ -1,8 +1,12 @@
 import pygame
-import time
+# import time
+
 import numpy as np
 import math
+
 import random
+
+import sys
 
 pygame.init()
 
@@ -18,13 +22,13 @@ red = (255, 0, 0)
 
 desktopWidth, desktopHeight = pygame.display.Info().current_w, pygame.display.Info().current_h
 pole_x_1 = 50
-pole_x_2 = 600
+pole_x_2 = 700
 pole_start = 50
 pole_height = 500
 
 theta_rod = 0
 gravity_accln = 100
-game_offset = 12
+game_offset = 10
 
 display_width = 72 * int(desktopWidth/100)
 display_height = 95 * int(desktopHeight/100)
@@ -39,6 +43,7 @@ pole = pygame.image.load('pole.png')
 rod = pygame.image.load('rod.png')
 brick = pygame.image.load('brick.png')
 ball = pygame.image.load('ball.png')
+ball_power = pygame.image.load('ball_power.png')
 # stone = [pygame.image.load("stone_1.png"), pygame.image.load("stone_2.png")]
 stone = pygame.image.load("stone.png")
 freeze = pygame.image.load("freeze.png")
@@ -95,11 +100,14 @@ def get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_
 
     return (x_ball, y_ball, speed_ball)
 
-def check_overlap(center, holes):
+def check_overlap(center, holes, game_offset, brick_boolean=False):
 
     for circle_center in holes:
         if abs(center[0] - circle_center[0][0]) < game_offset and abs(center[1] - circle_center[0][1]) < game_offset:
-            return True
+            if not brick_boolean:
+                return True
+            else:
+                holes[holes.index(circle_center)][1] = "brick"
     return False
 
 def message_to_screen(msg, color, vert_displacement=0, size=25, text_font="None", bold="False", italic="False") :
@@ -122,9 +130,13 @@ def game_loop():
 
     speed_ball = 0
     speed_hole = 1
+    speed_hole_special = 1
     score = 0
     special_on_screen = False
     ball_radius = 15
+    brick_boolean = False
+    small_boolean = False
+    power_taken = False
 
     x_ball = (x_1 + x_2) / 2
     y_ball = pole_start + (pole_height - ball_radius)
@@ -139,7 +151,7 @@ def game_loop():
     while hole_count < num_holes:
         center = [random.randint(pole_x_1 + ball_radius, pole_x_2 - ball_radius),
                   random.randint(pole_start + ball_radius, pole_start + pole_height - ball_radius)]
-        if not check_overlap(center, holes):
+        if not check_overlap(center, holes, game_offset):
             if hole_count == 0:
                 center[1] = 0
                 holes.append([center, "power"])
@@ -166,7 +178,7 @@ def game_loop():
                     if event.key == pygame.K_q:
                         game_exit = True
                         game_over = False
-                        return
+                        sys.exit(0)
 
                     if event.key == pygame.K_c:
                         game_loop()
@@ -176,9 +188,6 @@ def game_loop():
                     game_over = False
 
         gameDisplay.fill(white)
-        # pygame.draw.circle(gameDisplay, red, (int(x_ball), int(y_ball)), ball_radius)
-        if power != "small":
-            gameDisplay.blit(ball, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
 
         for hole_num in xrange(1, hole_count):
             holes[hole_num][0][1] += speed_hole
@@ -187,26 +196,44 @@ def game_loop():
                 holes[hole_num][0][0] = random.randint(pole_x_1 + ball_radius, pole_x_2 - ball_radius)
                 score += 1
 
+        if check_overlap((x_ball, y_ball), [holes[0]], 2.5 * game_offset):
+            power_taken = True
+
         if special_on_screen == True:
-            holes[0][0][1] += speed_hole
+            holes[0][0][1] += speed_hole_special
             if holes[0][0][1] <= pole_start + pole_height:
-                if power == "brick":
-                    gameDisplay.blit(brick, (holes[0][0][0], holes[0][0][1]))
-                elif power == "freeze":
-                    gameDisplay.blit(freeze, (holes[0][0][0], holes[0][0][1]))
-                elif power == "small":
-                    ball_radius = 8
-                    gameDisplay.blit(small, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
+                if not power_taken:
+                    if power == "brick":
+                        gameDisplay.blit(brick, (holes[0][0][0], holes[0][0][1]))
+                    elif power == "freeze":
+                        gameDisplay.blit(freeze, (holes[0][0][0], holes[0][0][1]))
+                    elif power == "small":
+                        gameDisplay.blit(small, (holes[0][0][0], holes[0][0][1]))
+                        # ball_radius = 8
+                        # gameDisplay.blit(small, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
+                else:
+                    if power == "brick":
+                        brick_boolean = True
+                    elif power == "freeze":
+                        speed_hole = 0
+                    elif power == "small":
+                        small_boolean = True
+
             else:
                 special_on_screen = False
                 ball_radius = 15
+                speed_hole = 1
+                power_taken = False
+                small_boolean = False
+                brick_boolean = False
                 power = ""
                 holes[0][0][1] = 0
                 holes[hole_num][0][0] = random.randint(pole_x_1 + ball_radius, pole_x_2 - ball_radius)
 
         for center in holes[1:]:
             # pygame.draw.circle(gameDisplay, black, center, ball_radius)
-            gameDisplay.blit(stone, (center[0][0] - ball_radius, center[0][1] - ball_radius))
+            if center[1] != "brick":
+                gameDisplay.blit(stone, (center[0][0] - ball_radius, center[0][1] - ball_radius))
 
         blit_rod(x_1, y_1, x_2, y_2)
 
@@ -232,6 +259,16 @@ def game_loop():
                 pygame.quit()
                 quit()
 
+        # pygame.draw.circle(gameDisplay, red, (int(x_ball), int(y_ball)), ball_radius)
+        if power_taken:
+            if small_boolean:
+                ball_radius = 8
+                gameDisplay.blit(small, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
+            else:
+                gameDisplay.blit(ball_power, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
+        else:
+            gameDisplay.blit(ball, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
+
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_DOWN]:
@@ -245,12 +282,12 @@ def game_loop():
 
         (x_ball, y_ball, speed_ball) = get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_radius)
 
-        if check_overlap((x_ball, y_ball), holes[1:]):
+        if check_overlap((x_ball, y_ball), holes[1:], game_offset, brick_boolean):
             game_over = True
 
         show_score(y_ball, holes, score)
 
-        if score != 0 and (score % 15) == 0 and not special_on_screen:
+        if score != 0 and (score % 5) == 0 and not special_on_screen:
             power = special_holes[random.randint(0, len(special_holes) - 1)]
             holes[0][1] = power
             special_on_screen = True
