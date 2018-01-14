@@ -45,9 +45,10 @@ brick = pygame.image.load('brick.png')
 ball = pygame.image.load('ball.png')
 ball_power = pygame.image.load('ball_power.png')
 # stone = [pygame.image.load("stone_1.png"), pygame.image.load("stone_2.png")]
-stone = pygame.image.load("stone.png")
-freeze = pygame.image.load("freeze.png")
-small = pygame.image.load("small.png")
+stone = pygame.image.load('stone.png')
+stone_broken = pygame.image.load('stone_broken.png')
+freeze = pygame.image.load('freeze.png')
+small = pygame.image.load('small.png')
 
 clock = pygame.time.Clock()
 
@@ -234,6 +235,9 @@ def game_loop():
             # pygame.draw.circle(gameDisplay, black, center, ball_radius)
             if center[1] != "brick":
                 gameDisplay.blit(stone, (center[0][0] - ball_radius, center[0][1] - ball_radius))
+            else:
+                gameDisplay.blit(stone_broken, (center[0][0] - ball_radius, center[0][1] - ball_radius))
+
 
         blit_rod(x_1, y_1, x_2, y_2)
 
