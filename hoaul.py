@@ -65,7 +65,7 @@ def blit_poles():
     gameDisplay.blit(branch_bottom, (pole_x_1 - 42, pole_start + pole_height))
     gameDisplay.blit(branch_bottom, (pole_x_2 - 42, pole_start + pole_height))
 
-def show_score(y_ball, holes, score) :
+def show_score(y_ball, holes, score):
 
     """ The function used to print the score on the top-left corner of screen """
 
@@ -76,6 +76,14 @@ def show_score(y_ball, holes, score) :
     font = pygame.font.SysFont("comicsansms", 20, True, True)
     screen_text = font.render("Score : " + str(int(score)), True, black)
     gameDisplay.blit(screen_text, [0, 0])
+
+def show_level(level):
+    """ The function used to print the level on the top-left corner of screen """
+
+    font = pygame.font.SysFont("comicsansms", 20, True, True)
+    screen_text = font.render("Level : " + str(int(level)), True, black)
+    gameDisplay.blit(screen_text, [0, 20])
+
 
 
 def blit_rod(x_1, y_1, x_2, y_2):
@@ -300,7 +308,7 @@ def game_loop(level):
         y_2 = min(y_2, pole_start + pole_height)
 
         if y_ball <= pole_start - ball_radius:
-            message_to_screen("Level", color=red, vert_displacement=-20, size=50, text_font="helvetica",
+            message_to_screen("Level Up", color=red, vert_displacement=-20, size=50, text_font="helvetica",
                               bold="True")
             message_to_screen("Press C to move to next level and Q to quit", color=black, vert_displacement=35, size=25,
                               text_font="timesnewroman", italic="True")
@@ -325,6 +333,7 @@ def game_loop(level):
             game_over = True
 
         show_score(y_ball, holes, score)
+        show_level(level)
 
         if score != 0 and (score % 5) == 0 and not special_on_screen:
             power = special_holes[random.randint(0, len(special_holes) - 1)]
