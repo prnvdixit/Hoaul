@@ -231,7 +231,7 @@ def game_loop(level):
                         gameDisplay.blit(small, (holes[0][0][0], holes[0][0][1]))
                         # ball_radius = 8
                         # gameDisplay.blit(small, (int(x_ball) - ball_radius, int(y_ball) - ball_radius))
-                else:
+                elif holes[0][0][1] <= pole_start + pole_height:
                     if power == "brick":
                         brick_boolean = True
                     elif power == "freeze":
@@ -302,6 +302,7 @@ def game_loop(level):
             y_1 -= 1
         if keys[pygame.K_s]:
             y_1 += 1
+
         y_1 = max(y_1, pole_start)
         y_1 = min(y_1, pole_start + pole_height)
         y_2 = max(y_2, pole_start)
