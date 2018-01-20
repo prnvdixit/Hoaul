@@ -27,7 +27,7 @@ pole_start = 50
 pole_height = 500
 
 theta_rod = 0
-gravity_accln = 12
+gravity_accln = 2
 game_offset = 10
 
 display_width = 72 * int(desktopWidth/100)
@@ -87,7 +87,6 @@ def show_level(level):
     gameDisplay.blit(screen_text, [0, 20])
 
 
-
 def blit_rod(x_1, y_1, x_2, y_2):
 
     slope = float(y_2 - y_1) / (x_2 - x_1)
@@ -96,14 +95,14 @@ def blit_rod(x_1, y_1, x_2, y_2):
         y = y_1 + slope * (i - x_1)
         gameDisplay.blit(rod, (i, y))
 
-def get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_radius):
+def get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_radius, level):
 
     # print x_1, y_1, x_2, y_2
 
     slope = float(y_1 - y_2) / (x_2 - x_1)
     theta = math.atan(slope)
 
-    displacement_x = speed_ball + 0.5 * gravity_accln * np.sin(theta)
+    displacement_x = speed_ball + 0.5 * (gravity_accln + 20 * level) * np.sin(theta)
     # print displacement_x, speed_ball, theta
 
     x_ball = x_ball - displacement_x * np.cos(theta)
@@ -160,8 +159,8 @@ def game_loop(level, score):
     small_boolean = False
     power_taken = False
 
-    score_touch_decreament = 0.1
-    score_decreament = 0.001
+    score_touch_decreament = 0.1 * level
+    score_decreament = 0.001 * level
 
     x_ball = (x_1 + x_2) / 2
     y_ball = pole_start + (pole_height - ball_radius)
@@ -333,7 +332,7 @@ def game_loop(level, score):
                     game_exit = True
                     game_over = False
 
-        (x_ball, y_ball, speed_ball) = get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_radius)
+        (x_ball, y_ball, speed_ball) = get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_radius, level)
 
         if check_overlap((x_ball, y_ball), holes[1:], game_offset, brick_boolean, small_boolean):
             game_over = True
