@@ -69,13 +69,15 @@ def show_score(y_ball, holes, score):
 
     """ The function used to print the score on the top-left corner of screen """
 
-    for circle_centers in holes:
-        if y_ball < circle_centers[1]:
+    for hole_centers in holes[1:]:
+        if int(y_ball) == hole_centers[0][1]:
             score += 1
 
     font = pygame.font.SysFont("comicsansms", 20, True, True)
     screen_text = font.render("Score : " + str(int(score)), True, black)
     gameDisplay.blit(screen_text, [0, 0])
+
+    return score
 
 def show_level(level):
     """ The function used to print the level on the top-left corner of screen """
@@ -140,22 +142,26 @@ def message_to_screen(msg, color, vert_displacement=0, size=25, text_font="None"
     gameDisplay.blit(screen_text, text_position)
 
 
-def game_loop(level):
+def game_loop(level, score):
 
     x_1 = pole_x_1
     x_2 = pole_x_2
     y_1 = pole_start + pole_height
     y_2 = pole_start + pole_height
 
+    debug_var = 0
+
     speed_ball = 0
     speed_hole = 1
     speed_hole_special = 1
-    score = 0
     special_on_screen = False
     ball_radius = 15
     brick_boolean = False
     small_boolean = False
     power_taken = False
+
+    score_touch_decreament = 0.1
+    score_decreament = 0.001
 
     x_ball = (x_1 + x_2) / 2
     y_ball = pole_start + (pole_height - ball_radius)
@@ -200,7 +206,7 @@ def game_loop(level):
                         sys.exit(0)
 
                     if event.key == pygame.K_c:
-                        game_loop(level)
+                        game_loop(level, 0.0)
 
                 if event.type == pygame.QUIT:
                     game_exit = True
@@ -213,7 +219,6 @@ def game_loop(level):
             if holes[hole_num][0][1] >= pole_start + pole_height:
                 holes[hole_num][0][1] -= pole_height
                 holes[hole_num][0][0] = random.randint(pole_x_1 + 2 * ball_radius, pole_x_2 - 2 * ball_radius)
-                score += 1
                 holes[hole_num][1] = ""
 
         if check_overlap((x_ball, y_ball), [holes[0]], 3 * game_offset):
@@ -322,7 +327,7 @@ def game_loop(level):
                         sys.exit(0)
 
                     if event.key == pygame.K_c:
-                        game_loop(level + 1)
+                        game_loop(level + 1, score)
 
                 if event.type == pygame.QUIT:
                     game_exit = True
@@ -333,8 +338,23 @@ def game_loop(level):
         if check_overlap((x_ball, y_ball), holes[1:], game_offset, brick_boolean, small_boolean):
             game_over = True
 
-        show_score(y_ball, holes, score)
+        # if score == int(score):
+        #     print "Ball and hole at Same level", debug_var
+        #     debug_var += 1
+
+        score = show_score(y_ball, holes, score)
+
+        if x_ball - 2 * ball_radius == pole_x_1 or x_ball + ball_radius == pole_x_2 and y_ball > pole_start - ball_radius:
+            score -= score_touch_decreament
+
+        elif y_ball > pole_start - ball_radius:
+            score -= score_decreament
+
+        # print score
+
         show_level(level)
+
+        # print score
 
         if score != 0 and (score % 5) == 0 and not special_on_screen:
             power = special_holes[random.randint(0, len(special_holes) - 1)]
@@ -345,6 +365,7 @@ def game_loop(level):
         pygame.display.update()
 
 init_level = 1
-game_loop(init_level)
+score = 0.0
+game_loop(init_level, score)
 pygame.quit()
 quit()
