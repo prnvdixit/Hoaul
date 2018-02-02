@@ -10,6 +10,8 @@ import sys
 import os
 from collections import Counter
 
+import co_ordinates
+
 os.environ['SDL_VIDEO_WINDOW_POS'] = '{0},{1}'.format(0, 0)
 
 ap = argparse.ArgumentParser()
@@ -91,37 +93,37 @@ def track():
 
                     img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
 
-                # if event.button == 3:
-                #     pos = pygame.mouse.get_pos()
-                #     x_co = pos[0]
-                #     y_co = pos[1]
-                #
-                #     img = frame
-                #
-                #     img_crop = img[y_co - crop_img_offset:y_co + crop_img_offset,
-                #                x_co - crop_img_offset:x_co + crop_img_offset]
-                #     img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2HSV)
-                #
-                #     length = len(img)
-                #     width = len(img[0])
-                #
-                #     (max_h, min_h, max_s, min_s, max_v, min_v) = (0, 180, 0, 255, 0, 255)
-                #
-                #     for i in xrange(0, length):
-                #         for j in xrange(0, width):
-                #             (h, s, v) = (img[i][j][0], img[i][j][1], img[i][j][2])
-                #             max_h = max(max_h, h)
-                #             min_h = min(min_h, h)
-                #             max_s = max(max_s, s)
-                #             min_s = min(min_s, s)
-                #             max_v = max(max_v, v)
-                #             min_v = min(min_v, v)
-                #
-                #     left_result = [(min_h, min_s, min_v), (max_h, max_s, max_v)]
-                #
-                #     left_object_set_detect = 1
-                #
-                #     img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+                if event.button == 3:
+                    pos = pygame.mouse.get_pos()
+                    x_co = pos[0]
+                    y_co = pos[1]
+
+                    img = frame
+
+                    img_crop = img[y_co - crop_img_offset:y_co + crop_img_offset,
+                               x_co - crop_img_offset:x_co + crop_img_offset]
+                    img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2HSV)
+
+                    length = len(img)
+                    width = len(img[0])
+
+                    (max_h, min_h, max_s, min_s, max_v, min_v) = (0, 180, 0, 255, 0, 255)
+
+                    for i in xrange(0, length):
+                        for j in xrange(0, width):
+                            (h, s, v) = (img[i][j][0], img[i][j][1], img[i][j][2])
+                            max_h = max(max_h, h)
+                            min_h = min(min_h, h)
+                            max_s = max(max_s, s)
+                            min_s = min(min_s, s)
+                            max_v = max(max_v, v)
+                            min_v = min(min_v, v)
+
+                    left_result = [(min_h, min_s, min_v), (max_h, max_s, max_v)]
+
+                    left_object_set_detect = 1
+
+                    img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
@@ -159,7 +161,7 @@ def track():
             mask = cv2.erode(mask, None, iterations=2)
             mask = cv2.dilate(mask, None, iterations=2)
 
-            cv2.imshow("Mask", mask)
+            # cv2.imshow("Mask", mask)
 
             contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
 
@@ -196,85 +198,83 @@ def track():
                 # print np.linalg.norm(vector)
                 d_y = right_vector[1]
 
-                (dir_x, dir_y) = ("", "")
+                (_, dir_y) = ("", "")
 
                 if np.abs(d_y) > 15:
                     dir_y = "South" if np.sign(d_y) == 1 else "North"
 
-                if dir_x == "":
-                    right_direction = dir_y
-                elif dir_y == "":
-                    right_direction = dir_x
-                else:
-                    right_direction = dir_x if abs(d_y) / abs(d_x) >= 1 else dir_y
+                right_direction = dir_y
 
                 right_vector = np.zeros((2, 1), dtype=np.int)
-                print "Right", right_direction
+                right_pts.clear()
+                if right_direction == "North":
+                    co_ordinates.y[1] -= 1
+                elif right_direction == "South":
+                    co_ordinates.y[1] += 1
 
-        # if left_object_set_detect:
-        #     colour_lower = np.array([left_result[0][0], left_result[0][1], left_result[0][2]], dtype="uint8")
-        #     colour_upper = np.array([left_result[1][0], left_result[1][1], left_result[1][2]], dtype="uint8")
-        #
-        #     frame = imutils.resize(frame, width=640)
-        #     blur_frame = cv2.GaussianBlur(frame, (15, 15), 0)
-        #     hsv = cv2.cvtColor(blur_frame, cv2.COLOR_BGR2HSV)
-        #
-        #     # print colour_lower, colour_upper
-        #     mask = cv2.inRange(hsv, colour_lower, colour_upper)
-        #     mask = cv2.erode(mask, None, iterations=2)
-        #     mask = cv2.dilate(mask, None, iterations=2)
-        #
-        #     cv2.imshow("Mask_II", mask)
-        #
-        #     contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
-        #
-        #     center = None
-        #
-        #     if len(contours) > 0:
-        #         c = max(contours, key=cv2.contourArea)
-        #         x, y, w, h = cv2.boundingRect(c)
-        #
-        #         center = (x + w / 2, y + h / 2)
-        #         # cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        #         left_pts.appendleft(center)
-        #
-        #         pygame.draw.rect(game_display, (0, 255, 0), (x, y, w, h), 2)
-        #         pygame.draw.rect(game_display, (0, 0, 0), (center[0], center[1], 10, 10))
-        #
-        #         if len(left_pts) > 1:
-        #             center = np.array(center)
-        #             center = center.reshape((2, 1))
-        #             last_element = np.array(left_pts[1]).reshape((2, 1))
-        #             left_vector += (center - last_element)
-        #             # print vector
-        #
-        #     for i in xrange(1, len(left_pts)):
-        #         if left_pts[i - 1] is None or left_pts[i] is None:
-        #             continue
-        #
-        #         thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 1.5)
-        #         # cv2.line(frame, pts[i - 1], pts[i], (0, 255, 0), thickness)
-        #         pygame.draw.line(game_display, (0, 255, 0), left_pts[i - 1], left_pts[i], thickness)
-        #
-        #     if np.linalg.norm(left_vector) > 20:
-        #         # print "Direction", vector
-        #         # print np.linalg.norm(vector)
-        #         d_y = left_vector[1]
-        #
-        #         (dir_x, dir_y) = ("", "")
-        #
-        #         if np.abs(d_y) > 15:
-        #             dir_y = "South" if np.sign(d_y) == 1 else "North"
-        #
-        #         if dir_x == "":
-        #             left_direction = dir_y
-        #         elif dir_y == "":
-        #             left_direction = dir_x
-        #         else:
-        #             left_direction = dir_x if abs(d_y) / abs(d_x) >= 1 else dir_y
-        #
-        #         left_vector = np.zeros((2, 1), dtype=np.int)
-        #         print "Left", left_direction
+        if left_object_set_detect:
+            colour_lower = np.array([left_result[0][0], left_result[0][1], left_result[0][2]], dtype="uint8")
+            colour_upper = np.array([left_result[1][0], left_result[1][1], left_result[1][2]], dtype="uint8")
+
+            frame = imutils.resize(frame, width=640)
+            blur_frame = cv2.GaussianBlur(frame, (15, 15), 0)
+            hsv = cv2.cvtColor(blur_frame, cv2.COLOR_BGR2HSV)
+
+            # print colour_lower, colour_upper
+            mask = cv2.inRange(hsv, colour_lower, colour_upper)
+            mask = cv2.erode(mask, None, iterations=2)
+            mask = cv2.dilate(mask, None, iterations=2)
+
+            # cv2.imshow("Mask_II", mask)
+
+            contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
+
+            center = None
+
+            if len(contours) > 0:
+                c = max(contours, key=cv2.contourArea)
+                x, y, w, h = cv2.boundingRect(c)
+
+                center = (x + w / 2, y + h / 2)
+                # cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                left_pts.appendleft(center)
+
+                pygame.draw.rect(game_display, (0, 255, 0), (x, y, w, h), 2)
+                pygame.draw.rect(game_display, (0, 0, 0), (center[0], center[1], 10, 10))
+
+                if len(left_pts) > 1:
+                    center = np.array(center)
+                    center = center.reshape((2, 1))
+                    last_element = np.array(left_pts[1]).reshape((2, 1))
+                    left_vector += (center - last_element)
+                    # print vector
+
+            for i in xrange(1, len(left_pts)):
+                if left_pts[i - 1] is None or left_pts[i] is None:
+                    continue
+
+                thickness = int(np.sqrt(args["buffer"] / float(i + 1)) * 1.5)
+                # cv2.line(frame, pts[i - 1], pts[i], (0, 255, 0), thickness)
+                pygame.draw.line(game_display, (0, 255, 0), left_pts[i - 1], left_pts[i], thickness)
+
+            if np.linalg.norm(left_vector) > 20:
+                # print "Direction", vector
+                # print np.linalg.norm(vector)
+                d_y = left_vector[1]
+
+                (_, dir_y) = ("", "")
+
+                if np.abs(d_y) > 15:
+                    dir_y = "South" if np.sign(d_y) == 1 else "North"
+
+                left_direction = dir_y
+
+                left_vector = np.zeros((2, 1), dtype=np.int)
+                left_pts.clear()
+                if left_direction == "North":
+                    co_ordinates.y[0] -= 1
+                elif left_direction == "South":
+                    co_ordinates.y[0] += 1
 
         font = pygame.font.SysFont("timesnewroman", size=25, bold="False", italic="True")
 
@@ -297,5 +297,8 @@ def track():
         if key == ord('q'):
             # print colour_upper, colour_lower
             break
+
+        print co_ordinates.x[0], co_ordinates.x[1], co_ordinates.y[0], co_ordinates.y[1]
+
 
 track()

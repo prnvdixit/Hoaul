@@ -8,6 +8,8 @@ import random
 
 import sys
 
+import co_ordinates
+
 pygame.init()
 
 
@@ -143,10 +145,10 @@ def message_to_screen(msg, color, vert_displacement=0, size=25, text_font="None"
 
 def game_loop(level, score):
 
-    x_1 = pole_x_1
-    x_2 = pole_x_2
-    y_1 = pole_start + pole_height
-    y_2 = pole_start + pole_height
+    x_1 = co_ordinates.x[0]
+    x_2 = co_ordinates.x[1]
+    y_1 = co_ordinates.y[0]
+    y_2 = co_ordinates.y[1]
 
     debug_var = 0
 
@@ -262,7 +264,7 @@ def game_loop(level, score):
                 gameDisplay.blit(stone_broken, (center[0][0] - ball_radius, center[0][1] - ball_radius))
 
 
-        blit_rod(x_1, y_1, x_2, y_2)
+        blit_rod(co_ordinates.x[0], co_ordinates.y[0], co_ordinates.x[1], co_ordinates.y[1])
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -298,14 +300,14 @@ def game_loop(level, score):
 
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_DOWN]:
-            y_2 += 1
-        if keys[pygame.K_UP]:
-            y_2 -= 1
-        if keys[pygame.K_w]:
-            y_1 -= 1
-        if keys[pygame.K_s]:
-            y_1 += 1
+        # if keys[pygame.K_DOWN]:
+        #     co_ordinates.y_2 += 1
+        # if keys[pygame.K_UP]:
+        #     co_ordinates.y_2 -= 1
+        # if keys[pygame.K_w]:
+        #     co_ordinates.y_1 -= 1
+        # if keys[pygame.K_s]:
+        #     co_ordinates.y_1 += 1
 
         y_1 = max(y_1, pole_start)
         y_1 = min(y_1, pole_start + pole_height)
@@ -332,7 +334,7 @@ def game_loop(level, score):
                     game_exit = True
                     game_over = False
 
-        (x_ball, y_ball, speed_ball) = get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_radius, level)
+        (x_ball, y_ball, speed_ball) = get_circle_coordinates(co_ordinates.x[0], co_ordinates.y[0], co_ordinates.x[1], co_ordinates.y[1], x_ball, y_ball, speed_ball, ball_radius, level)
 
         if check_overlap((x_ball, y_ball), holes[1:], game_offset, brick_boolean, small_boolean):
             game_over = True
@@ -363,8 +365,11 @@ def game_loop(level, score):
         blit_poles()
         pygame.display.update()
 
-init_level = 1
-score = 0.0
-game_loop(init_level, score)
-pygame.quit()
-quit()
+        print co_ordinates.x[0], co_ordinates.x[1], co_ordinates.y[0], co_ordinates.y[1]
+
+if __name__ == "__main__":
+    init_level = 1
+    score = 0.0
+    game_loop(init_level, score)
+    pygame.quit()
+    quit()
