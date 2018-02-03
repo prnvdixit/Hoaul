@@ -56,7 +56,6 @@ def track():
     left_result = []
     right_result = []
 
-
     while True:
         (grabbed, frame) = camera.read()
 
