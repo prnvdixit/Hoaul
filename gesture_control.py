@@ -11,6 +11,7 @@ import os
 from collections import Counter
 
 import co_ordinates
+import pickle
 
 os.environ['SDL_VIDEO_WINDOW_POS'] = '{0},{1}'.format(0, 0)
 
@@ -27,6 +28,9 @@ def track():
 
     right_vector = np.zeros((2, 1), dtype=np.int)
     left_vector = np.zeros((2, 1), dtype=np.int)
+
+    shared = {"x_1" : co_ordinates.x[0], "x_2" : co_ordinates.x[1], "y_1" : co_ordinates.y[0],
+              "y_2" : co_ordinates.y[1]}
 
     camera = cv2.VideoCapture(0)
 
@@ -52,8 +56,12 @@ def track():
     left_result = []
     right_result = []
 
+
     while True:
         (grabbed, frame) = camera.read()
+
+        with open('constants.pickle', 'w+b') as f:
+            pickle.dump(shared, f, pickle.HIGHEST_PROTOCOL)
 
         frame = cv2.flip(frame, 1)
 
@@ -208,9 +216,9 @@ def track():
                 right_vector = np.zeros((2, 1), dtype=np.int)
                 right_pts.clear()
                 if right_direction == "North":
-                    co_ordinates.y[1] -= 1
+                    shared["y_2"] -= 10
                 elif right_direction == "South":
-                    co_ordinates.y[1] += 1
+                    shared["y_2"] += 10
 
         if left_object_set_detect:
             colour_lower = np.array([left_result[0][0], left_result[0][1], left_result[0][2]], dtype="uint8")
@@ -272,9 +280,9 @@ def track():
                 left_vector = np.zeros((2, 1), dtype=np.int)
                 left_pts.clear()
                 if left_direction == "North":
-                    co_ordinates.y[0] -= 1
+                    shared["y_1"] -= 10
                 elif left_direction == "South":
-                    co_ordinates.y[0] += 1
+                    shared["y_1"] += 10
 
         font = pygame.font.SysFont("timesnewroman", size=25, bold="False", italic="True")
 
@@ -298,7 +306,9 @@ def track():
             # print colour_upper, colour_lower
             break
 
-        print co_ordinates.x[0], co_ordinates.x[1], co_ordinates.y[0], co_ordinates.y[1]
+        with open('constants.pickle', 'r+b') as f:
+            data = pickle.load(f)
+            print(data)
 
 
 track()

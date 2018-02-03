@@ -8,6 +8,7 @@ import random
 
 import sys
 
+import pickle
 import co_ordinates
 
 pygame.init()
@@ -145,10 +146,10 @@ def message_to_screen(msg, color, vert_displacement=0, size=25, text_font="None"
 
 def game_loop(level, score):
 
-    x_1 = co_ordinates.x[0]
-    x_2 = co_ordinates.x[1]
-    y_1 = co_ordinates.y[0]
-    y_2 = co_ordinates.y[1]
+    x_1 = pole_x_1
+    x_2 = pole_x_2
+    y_1 = pole_start + pole_height
+    y_2 = pole_start + pole_height
 
     debug_var = 0
 
@@ -191,6 +192,14 @@ def game_loop(level, score):
     game_over = False
 
     while not game_exit:
+
+        try:
+            with open('constants.pickle', 'r+b') as f:
+                shared = pickle.load(f)
+        except EOFError:
+            pass
+        except KeyError:
+            pass
 
         while game_over:
             message_to_screen("Game Over", color=red, vert_displacement=-20, size=50, text_font="helvetica",
@@ -264,7 +273,7 @@ def game_loop(level, score):
                 gameDisplay.blit(stone_broken, (center[0][0] - ball_radius, center[0][1] - ball_radius))
 
 
-        blit_rod(co_ordinates.x[0], co_ordinates.y[0], co_ordinates.x[1], co_ordinates.y[1])
+        blit_rod(shared["x_1"], shared["y_1"], shared["x_2"], shared["y_2"])
 
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -334,7 +343,7 @@ def game_loop(level, score):
                     game_exit = True
                     game_over = False
 
-        (x_ball, y_ball, speed_ball) = get_circle_coordinates(co_ordinates.x[0], co_ordinates.y[0], co_ordinates.x[1], co_ordinates.y[1], x_ball, y_ball, speed_ball, ball_radius, level)
+        (x_ball, y_ball, speed_ball) = get_circle_coordinates(shared["x_1"], shared["y_1"], shared["x_2"],shared["y_2"], x_ball, y_ball, speed_ball, ball_radius, level)
 
         if check_overlap((x_ball, y_ball), holes[1:], game_offset, brick_boolean, small_boolean):
             game_over = True
@@ -365,7 +374,7 @@ def game_loop(level, score):
         blit_poles()
         pygame.display.update()
 
-        print co_ordinates.x[0], co_ordinates.x[1], co_ordinates.y[0], co_ordinates.y[1]
+        print shared["x_1"], shared["x_2"], shared["y_1"], shared["y_2"]
 
 if __name__ == "__main__":
     init_level = 1
