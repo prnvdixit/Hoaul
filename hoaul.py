@@ -8,9 +8,6 @@ import random
 
 import sys
 
-import pickle
-import co_ordinates
-
 pygame.init()
 
 
@@ -146,8 +143,10 @@ def message_to_screen(msg, color, vert_displacement=0, size=25, text_font="None"
 
 def game_loop(level, score):
 
-    shared = {"x_1": co_ordinates.x[0], "x_2": co_ordinates.x[1], "y_1": co_ordinates.y[0],
-              "y_2": co_ordinates.y[1]}
+    x_1 = pole_x_1
+    x_2 = pole_x_2
+    y_1 = pole_start + pole_height
+    y_2 = pole_start + pole_height
 
     debug_var = 0
 
@@ -163,7 +162,7 @@ def game_loop(level, score):
     score_touch_decreament = 0.1 * level
     score_decreament = 0.001 * level
 
-    x_ball = (shared["x_1"] + shared["x_2"]) / 2
+    x_ball = (x_1 + x_2) / 2
     y_ball = pole_start + (pole_height - ball_radius)
 
     hole_count = 0
@@ -191,22 +190,6 @@ def game_loop(level, score):
 
     while not game_exit:
 
-        try:
-            with open('constants.pickle', 'r+b') as f:
-                shared = pickle.load(f)
-        except EOFError:
-            shared = {"x_1": co_ordinates.x[0], "x_2": co_ordinates.x[1], "y_1": co_ordinates.y[0],
-                      "y_2": co_ordinates.y[1]}
-        except KeyError:
-            pass
-
-        x_1 = shared["x_1"]
-        x_2 = shared["x_2"]
-        y_1 = shared["y_1"]
-        y_2 = shared["y_2"]
-
-        print shared
-
         # print x_1, y_1, x_2, y_2
 
         while game_over:
@@ -224,15 +207,6 @@ def game_loop(level, score):
                         sys.exit(0)
 
                     if event.key == pygame.K_c:
-                        shared = {"x_1": co_ordinates.x[0], "x_2": co_ordinates.x[1], "y_1": co_ordinates.y[0],
-                                  "y_2": co_ordinates.y[1]}
-                        with open('constants.pickle', 'w+b') as f:
-                            pickle.dump(shared, f, pickle.HIGHEST_PROTOCOL)
-
-                        with open('constants.pickle', 'r+b') as f:
-                            data = pickle.load(f)
-                            print(data)
-
                         game_loop(level, 0.0)
 
                 if event.type == pygame.QUIT:
@@ -324,14 +298,14 @@ def game_loop(level, score):
 
         keys = pygame.key.get_pressed()
 
-        # if keys[pygame.K_DOWN]:
-        #     y_2 += 1
-        # if keys[pygame.K_UP]:
-        #     y_2 -= 1
-        # if keys[pygame.K_w]:
-        #     y_1 -= 1
-        # if keys[pygame.K_s]:
-        #     y_1 += 1
+        if keys[pygame.K_DOWN]:
+            y_2 += 10
+        if keys[pygame.K_UP]:
+            y_2 -= 10
+        if keys[pygame.K_w]:
+            y_1 -= 10
+        if keys[pygame.K_s]:
+            y_1 += 10
 
         y_1 = max(y_1, pole_start)
         y_1 = min(y_1, pole_start + pole_height)
@@ -355,12 +329,6 @@ def game_loop(level, score):
                         sys.exit(0)
 
                     if event.key == pygame.K_c:
-
-                        shared = {"x_1": co_ordinates.x[0], "x_2": co_ordinates.x[1], "y_1": co_ordinates.y[0],
-                                  "y_2": co_ordinates.y[1]}
-                        with open('constants.pickle', 'w+b') as f:
-                            pickle.dump(shared, f, pickle.HIGHEST_PROTOCOL)
-
                         game_loop(level + 1, score)
 
                 if event.type == pygame.QUIT:

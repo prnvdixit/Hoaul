@@ -10,8 +10,11 @@ import sys
 import os
 from collections import Counter
 
-import co_ordinates
-import pickle
+import pyautogui
+
+import gtk
+import wnck
+import time
 
 os.environ['SDL_VIDEO_WINDOW_POS'] = '{0},{1}'.format(0, 0)
 
@@ -24,13 +27,21 @@ crop_img_offset = 20
 left_pts = deque(maxlen=args["buffer"])
 right_pts = deque(maxlen=args["buffer"])
 
+def show_game_window():
+
+    screen = wnck.screen_get_default()
+    while gtk.events_pending():
+        gtk.main_iteration()
+
+    windows = screen.get_windows()
+    for w in windows:
+        if w.get_name() == 'Hoaul':
+            w.activate(int(time.time()))
+
 def track():
 
     right_vector = np.zeros((2, 1), dtype=np.int)
     left_vector = np.zeros((2, 1), dtype=np.int)
-
-    shared = {"x_1" : co_ordinates.x[0], "x_2" : co_ordinates.x[1], "y_1" : co_ordinates.y[0],
-              "y_2" : co_ordinates.y[1]}
 
     camera = cv2.VideoCapture(0)
 
@@ -58,9 +69,6 @@ def track():
 
     while True:
         (grabbed, frame) = camera.read()
-
-        with open('constants.pickle', 'w+b') as f:
-            pickle.dump(shared, f, pickle.HIGHEST_PROTOCOL)
 
         frame = cv2.flip(frame, 1)
 
@@ -137,10 +145,7 @@ def track():
                     sys.exit(0)
 
                 elif event.key == pygame.K_s:
-                    pts.clear()
-                    object_set_to_be_detected = 1 - object_set_to_be_detected
                     direction = ""
-                    constants.mode = ""
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = np.transpose(frame, (1, 0, 2))
@@ -215,9 +220,9 @@ def track():
                 right_vector = np.zeros((2, 1), dtype=np.int)
                 right_pts.clear()
                 if right_direction == "North":
-                    shared["y_2"] -= 10
+                    pyautogui.press('up')
                 elif right_direction == "South":
-                    shared["y_2"] += 10
+                    pyautogui.press('down')
 
         if left_object_set_detect:
             colour_lower = np.array([left_result[0][0], left_result[0][1], left_result[0][2]], dtype="uint8")
@@ -279,9 +284,9 @@ def track():
                 left_vector = np.zeros((2, 1), dtype=np.int)
                 left_pts.clear()
                 if left_direction == "North":
-                    shared["y_1"] -= 10
+                    pyautogui.press('w')
                 elif left_direction == "South":
-                    shared["y_1"] += 10
+                    pyautogui.press('s')
 
         font = pygame.font.SysFont("timesnewroman", size=25, bold="False", italic="True")
 
@@ -297,6 +302,8 @@ def track():
 
         pygame.display.update()
 
+        show_game_window()
+
         # video.write(frame)
 
         key = cv2.waitKey(1) & 0xFF
@@ -304,10 +311,5 @@ def track():
         if key == ord('q'):
             # print colour_upper, colour_lower
             break
-
-        with open('constants.pickle', 'r+b') as f:
-            data = pickle.load(f)
-            print(data)
-
 
 track()
