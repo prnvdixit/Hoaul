@@ -6,9 +6,7 @@ import pygame
 import imutils
 
 import sys
-
 import os
-from collections import Counter
 
 import pyautogui
 
@@ -26,6 +24,36 @@ crop_img_offset = 20
 
 left_pts = deque(maxlen=args["buffer"])
 right_pts = deque(maxlen=args["buffer"])
+
+def select_object(frame, crop_img_offset):
+    pos = pygame.mouse.get_pos()
+    x_co = pos[0]
+    y_co = pos[1]
+
+    img = frame
+
+    img_crop = img[y_co - crop_img_offset:y_co + crop_img_offset,
+               x_co - crop_img_offset:x_co + crop_img_offset]
+    img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2HSV)
+
+    length = len(img)
+    width = len(img[0])
+
+    (max_h, min_h, max_s, min_s, max_v, min_v) = (0, 180, 0, 255, 0, 255)
+
+    for i in xrange(0, length):
+        for j in xrange(0, width):
+            (h, s, v) = (img[i][j][0], img[i][j][1], img[i][j][2])
+            max_h = max(max_h, h)
+            min_h = min(min_h, h)
+            max_s = max(max_s, s)
+            min_s = min(min_s, s)
+            max_v = max(max_v, v)
+            min_v = min(min_v, v)
+
+    img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+
+    return [(min_h, min_s, min_v), (max_h, max_s, max_v)]
 
 def show_game_window():
 
@@ -77,68 +105,14 @@ def track():
             if event.type == pygame.MOUSEBUTTONDOWN:
 
                 if event.button == 1:
-                    pos = pygame.mouse.get_pos()
-                    x_co = pos[0]
-                    y_co = pos[1]
 
-                    img = frame
-
-                    img_crop = img[y_co - crop_img_offset:y_co + crop_img_offset,
-                               x_co - crop_img_offset:x_co + crop_img_offset]
-                    img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2HSV)
-
-                    length = len(img)
-                    width = len(img[0])
-
-                    (max_h, min_h, max_s, min_s, max_v, min_v) = (0, 180, 0, 255, 0, 255)
-
-                    for i in xrange(0, length):
-                        for j in xrange(0, width):
-                            (h, s, v) = (img[i][j][0], img[i][j][1], img[i][j][2])
-                            max_h = max(max_h, h)
-                            min_h = min(min_h, h)
-                            max_s = max(max_s, s)
-                            min_s = min(min_s, s)
-                            max_v = max(max_v, v)
-                            min_v = min(min_v, v)
-
-                    right_result = [(min_h, min_s, min_v), (max_h, max_s, max_v)]
-
+                    right_result = select_object(frame, crop_img_offset)
                     right_object_set_detect = 1
 
-                    img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
-
                 if event.button == 3:
-                    pos = pygame.mouse.get_pos()
-                    x_co = pos[0]
-                    y_co = pos[1]
 
-                    img = frame
-
-                    img_crop = img[y_co - crop_img_offset:y_co + crop_img_offset,
-                               x_co - crop_img_offset:x_co + crop_img_offset]
-                    img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2HSV)
-
-                    length = len(img)
-                    width = len(img[0])
-
-                    (max_h, min_h, max_s, min_s, max_v, min_v) = (0, 180, 0, 255, 0, 255)
-
-                    for i in xrange(0, length):
-                        for j in xrange(0, width):
-                            (h, s, v) = (img[i][j][0], img[i][j][1], img[i][j][2])
-                            max_h = max(max_h, h)
-                            min_h = min(min_h, h)
-                            max_s = max(max_s, s)
-                            min_s = min(min_s, s)
-                            max_v = max(max_v, v)
-                            min_v = min(min_v, v)
-
-                    left_result = [(min_h, min_s, min_v), (max_h, max_s, max_v)]
-
+                    left_result = select_object(frame, crop_img_offset)
                     left_object_set_detect = 1
-
-                    img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
