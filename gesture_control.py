@@ -14,21 +14,26 @@ import gtk
 import wnck
 import time
 
+# Setting window to start from the leftmost corner of screen
 os.environ['SDL_VIDEO_WINDOW_POS'] = '{0},{1}'.format(0, 0)
 
+# Pass arguments - buffer size would mean sensitivity
 ap = argparse.ArgumentParser()
 ap.add_argument("-b", "--buffer", type=int, default=4, help="max buffer size")
 args = vars(ap.parse_args())
 
+# Size of selection-square
 crop_img_offset = 20
 
 def select_object(frame, crop_img_offset):
+
+    # Get mouse coordinates for object selection
     pos = pygame.mouse.get_pos()
     x_co = pos[0]
     y_co = pos[1]
 
+    # Crop the image corresponding to the area selected
     img = frame
-
     img_crop = img[y_co - crop_img_offset:y_co + crop_img_offset,
                x_co - crop_img_offset:x_co + crop_img_offset]
     img = cv2.cvtColor(img_crop, cv2.COLOR_BGR2HSV)
@@ -36,8 +41,11 @@ def select_object(frame, crop_img_offset):
     length = len(img)
     width = len(img[0])
 
+    # Assign init values to HSV-ranges
     (max_h, min_h, max_s, min_s, max_v, min_v) = (0, 180, 0, 255, 0, 255)
 
+
+    # Iterate through all the pixels and determine the HSV-range
     for i in xrange(0, length):
         for j in xrange(0, width):
             (h, s, v) = (img[i][j][0], img[i][j][1], img[i][j][2])
@@ -48,12 +56,15 @@ def select_object(frame, crop_img_offset):
             max_v = max(max_v, v)
             min_v = min(min_v, v)
 
+    # Revert back the cropped part to BGR
     img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
 
     return [(min_h, min_s, min_v), (max_h, max_s, max_v)]
 
 def show_game_window():
 
+    # Useful to ensure that the game-screen is always in focus
+    # when simulating the key-press using pyautogui
     screen = wnck.screen_get_default()
     while gtk.events_pending():
         gtk.main_iteration()
