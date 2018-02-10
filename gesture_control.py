@@ -76,9 +76,11 @@ def show_game_window():
 
 def detect_gesture(result, frame, pts, vector, key_up, key_down, game_display):
 
+    # colour_lower and colour_lower are HSV-ranges for corresponding object.
     colour_lower = np.array([result[0][0], result[0][1], result[0][2]], dtype="uint8")
     colour_upper = np.array([result[1][0], result[1][1], result[1][2]], dtype="uint8")
 
+    # Apply blurring function to reduce noise
     frame = imutils.resize(frame, width=640)
     blur_frame = cv2.GaussianBlur(frame, (15, 15), 0)
     hsv = cv2.cvtColor(blur_frame, cv2.COLOR_BGR2HSV)
@@ -90,11 +92,15 @@ def detect_gesture(result, frame, pts, vector, key_up, key_down, game_display):
 
     # cv2.imshow("Mask", mask)
 
+    # Find the contours corresponding to the colour-range
     contours = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]
 
     center = None
 
+    # If there is atleast some contour - process the contour list
     if len(contours) > 0:
+
+        # Find the maximum-area contour
         c = max(contours, key=cv2.contourArea)
         x, y, w, h = cv2.boundingRect(c)
 
@@ -102,9 +108,11 @@ def detect_gesture(result, frame, pts, vector, key_up, key_down, game_display):
         # cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         pts.appendleft(center)
 
+        # Draw a rectangle around max area contour
         pygame.draw.rect(game_display, (0, 255, 0), (x, y, w, h), 2)
         pygame.draw.rect(game_display, (0, 0, 0), (center[0], center[1], 10, 10))
 
+        # Update the vector corresponding to the motion
         if len(pts) > 1:
             center = np.array(center)
             center = center.reshape((2, 1))
@@ -112,6 +120,7 @@ def detect_gesture(result, frame, pts, vector, key_up, key_down, game_display):
             vector += (center - last_element)
             # print vector
 
+    # Draw a trail to the motion
     for i in xrange(1, len(pts)):
         if pts[i - 1] is None or pts[i] is None:
             continue
@@ -120,6 +129,8 @@ def detect_gesture(result, frame, pts, vector, key_up, key_down, game_display):
         # cv2.line(frame, pts[i - 1], pts[i], (0, 255, 0), thickness)
         pygame.draw.line(game_display, (0, 255, 0), pts[i - 1], pts[i], thickness)
 
+    # If magnitude of vector is more than the threshold
+    # find the direction and blit it on the game-display
     if np.linalg.norm(vector) > 20:
         # print "Direction", vector
         # print np.linalg.norm(vector)
