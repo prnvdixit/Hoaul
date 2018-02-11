@@ -155,9 +155,12 @@ def detect_gesture(result, frame, pts, vector, key_up, key_down, game_display):
 
 def track():
 
+    # Initialise the vectors for both right and
+    # left colours
     right_vector = np.zeros((2, 1), dtype=np.int)
     left_vector = np.zeros((2, 1), dtype=np.int)
 
+    # Create a capture object
     camera = cv2.VideoCapture(0)
 
     # fourcc = cv2.cv.CV_FOURCC(*'MJPG')
@@ -165,6 +168,8 @@ def track():
 
     (grabbed, frame) = camera.read()
 
+    # Transpose the grabbed frame to match the
+    # dimensions of the pygame window
     frame = np.transpose(frame, (1, 0, 2))
 
     pygame.init()
@@ -173,6 +178,7 @@ def track():
     pygame.display.set_caption('gesture_detection')
     pygame.mouse.set_visible(False)
 
+    # Object-attributes is initialised
     right_object_set_detect = 0
     left_object_set_detect = 0
 
@@ -192,6 +198,8 @@ def track():
 
         for event in pygame.event.get():
 
+            # Left click on the object for left-side pole
+            # Right click on the object for right-side pole
             if event.type == pygame.MOUSEBUTTONDOWN:
 
                 if event.button == 1:
@@ -208,22 +216,32 @@ def track():
                 if event.key == pygame.K_q:
                     sys.exit(0)
 
+                # Click 's' to stop detection
                 elif event.key == pygame.K_s:
                     direction = ""
 
+        # Convert to RGB (OpenCV compatible) from BGR (Pygame compatible)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = np.transpose(frame, (1, 0, 2))
-        pygame.surfarray.blit_array(game_display, frame)
+
+        # Transpose to fit in the window
         frame = np.transpose(frame, (1, 0, 2))
 
+        # Blit on the game-display
+        pygame.surfarray.blit_array(game_display, frame)
+
+        # Re-transpose & convert to make it openCV compatible
+        frame = np.transpose(frame, (1, 0, 2))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
+
+        # Show the rectangular selection box - To select the object
         position_mouse = pygame.mouse.get_pos()
         pygame.draw.rect(game_display, (0, 0, 0), (
         position_mouse[0] - crop_img_offset, position_mouse[1] - crop_img_offset, 2 * crop_img_offset,
         2 * crop_img_offset), 2)
 
 
+        # If objects are set to detect - Detect them in frame
         if right_object_set_detect:
             (right_pts, right_vector, right_result) = detect_gesture(right_result, frame, right_pts, right_vector, 'up',
                                                                      'down', game_display)
@@ -232,6 +250,7 @@ def track():
             (left_pts, left_vector, left_result) = detect_gesture(left_result, frame, left_pts, left_vector, 'w',
                                                                      's', game_display)
 
+        # Blit the directions on frame
         font = pygame.font.SysFont("timesnewroman", size=25, bold="False", italic="True")
 
         screen_text = font.render(left_direction, True, (0, 0, 255))
@@ -246,6 +265,7 @@ def track():
 
         pygame.display.update()
 
+        # Ensure that Pygame window is in focus when simulating the click
         show_game_window()
 
         # video.write(frame)
