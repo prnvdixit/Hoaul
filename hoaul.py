@@ -11,16 +11,18 @@ import sys
 pygame.init()
 
 
-"""setting up the color scheme for the game """
+# setting up the color scheme for the game
 
 white = (255, 255, 255)
 black = (0, 0, 0)
 red = (255, 0, 0)
 
 
-"""setting up the screen size"""
+# setting up the screen size
 
 desktopWidth, desktopHeight = pygame.display.Info().current_w, pygame.display.Info().current_h
+
+# setting up the pole attributes
 pole_x_1 = 50
 pole_x_2 = 700
 pole_start = 50
@@ -33,12 +35,13 @@ game_offset = 10
 display_width = 72 * int(desktopWidth/100)
 display_height = 95 * int(desktopHeight/100)
 
-"""setting the game-name and display window"""
+# setting the game-name and display window
 
 gameDisplay = pygame.display.set_mode((display_width, display_height))
 pygame.display.set_caption('Hoaul')
 
 
+# Load the relevant images
 pole = pygame.image.load('branch.png')
 branch_bottom = pygame.image.load('branch_bottom.png')
 rod = pygame.image.load('rod.png')
@@ -58,6 +61,7 @@ clock = pygame.time.Clock()
 
 def blit_poles():
 
+    # Blit the pole-image repetitively
     for i in xrange(pole_start, pole_start + pole_height, 10):
         gameDisplay.blit(pole, (pole_x_1, i))
         gameDisplay.blit(pole, (pole_x_2, i))
@@ -67,8 +71,8 @@ def blit_poles():
 
 def show_score(y_ball, holes, score):
 
-    """ The function used to print the score on the top-left corner of screen """
-
+    # The function used to print the score on the top-left corner of screen
+    # Incremaent the score for each hole on the same level as ball
     for hole_centers in holes[1:]:
         if int(y_ball) == hole_centers[0][1]:
             score += 1
@@ -80,8 +84,8 @@ def show_score(y_ball, holes, score):
     return score
 
 def show_level(level):
-    """ The function used to print the level on the top-left corner of screen """
 
+    # The function used to print the level on the top-left corner of screen
     font = pygame.font.SysFont("comicsansms", 20, True, True)
     screen_text = font.render("Level : " + str(int(level)), True, black)
     gameDisplay.blit(screen_text, [0, 20])
@@ -89,6 +93,7 @@ def show_level(level):
 
 def blit_rod(x_1, y_1, x_2, y_2):
 
+    # Blit the rod
     slope = float(y_2 - y_1) / (x_2 - x_1)
 
     for i in xrange(x_1, x_2):
@@ -102,12 +107,16 @@ def get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_
     slope = float(y_1 - y_2) / (x_2 - x_1)
     theta = math.atan(slope)
 
+    # Use Newton's law of motion and corresponding equations of motion to get Sx
+    # gravity_accln is set appropriately to mimic general movement
     displacement_x = speed_ball + 0.5 * (gravity_accln + 20 * level) * np.sin(theta)
     # print displacement_x, speed_ball, theta
 
+    # Get the new coordinates of ball
     x_ball = x_ball - displacement_x * np.cos(theta)
     y_ball = -1 * slope * (x_ball - x_1) + y_1 - ball_radius
 
+    # Cover the extreme cases - Top most and bottom most
     if x_ball < pole_x_1 + 2 * ball_radius:
         x_ball = pole_x_1 + 2 * ball_radius
 
@@ -118,21 +127,27 @@ def get_circle_coordinates(x_1, y_1, x_2, y_2, x_ball, y_ball, speed_ball, ball_
 
 def check_overlap(center, holes, game_offset, brick_boolean=False, small_boolean=False):
 
+    # Check if there have been any collision
+    # For small ball, the allowed_distance would be lesser
     if small_boolean:
         game_offset /= 2
+
     if brick_boolean:
         game_offset *= 2
+
+    # Iterate through all holes and check them one by one
     for circle_center in holes:
         if abs(center[0] - circle_center[0][0]) < game_offset and abs(center[1] - circle_center[0][1]) < game_offset:
             if not brick_boolean:
                 return True
             else:
                 holes[holes.index(circle_center)][1] = "brick"
+
     return False
 
 def message_to_screen(msg, color, vert_displacement=0, size=25, text_font="None", bold="False", italic="False") :
 
-    """ Function to print a message (msg) on the game-display """
+    # Function to print a message (msg) on the game-display
 
     font = pygame.font.SysFont(text_font, size, bold, italic)
     screen_text = font.render(msg, True, color)
