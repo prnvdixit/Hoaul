@@ -158,13 +158,16 @@ def message_to_screen(msg, color, vert_displacement=0, size=25, text_font="None"
 
 def game_loop(level, score):
 
+    # Set pole variables
     x_1 = pole_x_1
     x_2 = pole_x_2
     y_1 = pole_start + pole_height
     y_2 = pole_start + pole_height
 
+    # Just some random variable to aid in debugging
     debug_var = 0
 
+    # Initialize the variables
     speed_ball = 0
     speed_hole = 1
     speed_hole_special = 1
@@ -174,19 +177,23 @@ def game_loop(level, score):
     small_boolean = False
     power_taken = False
 
+    # Score variables
     score_touch_decreament = 0.1 * level
     score_decreament = 0.001 * level
 
+    # Ball coordinates
     x_ball = (x_1 + x_2) / 2
     y_ball = pole_start + (pole_height - ball_radius)
 
+    # Hole variables
     hole_count = 0
     holes = []
     special_holes = ["brick", "freeze", "small"]
     power = ""
     num_holes = random.randint(10 * level, 12 * level)
 
-
+    # Randomly generate new holes without any overlapping
+    # holes
     while hole_count < num_holes:
         center = [random.randint(pole_x_1 + 2 * ball_radius, pole_x_2 - 2 * ball_radius),
                   random.randint(pole_start + 2 * ball_radius, pole_start + pole_height - 2 * ball_radius)]
