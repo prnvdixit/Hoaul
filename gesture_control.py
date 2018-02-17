@@ -163,6 +163,10 @@ def track():
     # Create a capture object
     camera = cv2.VideoCapture(0)
 
+    # Create fourcc and VideoWriter objects
+    fourcc = cv2.cv.CV_FOURCC(*'MJPG')
+    video = cv2.VideoWriter('output.avi', fourcc, 30.0, (640, 480))
+
     # fourcc = cv2.cv.CV_FOURCC(*'MJPG')
     # video = cv2.VideoWriter('output.avi', fourcc, 30.0, (640, 480))
 
@@ -268,7 +272,7 @@ def track():
         # Ensure that Pygame window is in focus when simulating the click
         show_game_window()
 
-        # video.write(frame)
+        video.write(frame)
 
         key = cv2.waitKey(1) & 0xFF
 
