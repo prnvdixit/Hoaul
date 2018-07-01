@@ -1,12 +1,16 @@
 ## Hoaul
 
-A basic hand-gesture controlled game.
+[![made with &hearts in Python](https://img.shields.io/badge/made%20with%20%E2%9D%A4%20in-Python-red.svg)](http://shields.io/#your-badge)
 
-The motivation behind the game was from this GIF that I found on Reddit one day - 
-[![Put the ball in the hole](https://i.imgur.com/N9Zo4Ns.gifv)](https://i.imgur.com/N9Zo4Ns.gifv)
+> A basic hand-gesture controlled game.
+
+The motivation behind the game was from this GIF that I found on Reddit one day -
+
+<a href="https://github.com/prnvdixit/Hoaul/"><img style="position: relative; top: 0; left: 0; border: 0;" src="https://thumbs.gfycat.com/ActiveNastyLangur-size_restricted.gif" alt="Put the ball in the hole" data-canonical-></a>
 
 
 I developed this project to use my knowledge related to PyGame and OpenCV in combination. This project is an extension to the [Vixon](https://github.com/prnvdixit/Vixon) application.
+
 
 ## Usage
 
@@ -15,9 +19,9 @@ For finding out how to set HSV ranges for objects - Refer [Vixon's README](https
 Once you have set the ranges - you can start playing the game using the objects (/colours) you set earlier for left and right control.
 
 For left hand control - Use ```W and S```
-For right hand control - Use ```Arrow\_Up and Arrow\_Down```
 
-In action -
+For right hand control - Use ```Arrow_Up and Arrow_Down```
+
 ![hoaul_demo](https://github.com/prnvdixit/Hoaul/blob/master/hoaul_screen.png)
 
 
